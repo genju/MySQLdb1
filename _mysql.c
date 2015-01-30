@@ -559,13 +559,14 @@ _mysql_ConnectionObject_Initialize(
 		*db = NULL, *unix_socket = NULL;
 	unsigned int port = 0;
 	unsigned int client_flag = 0;
+	unsigned int secure_auth = -1;
 	static char *kwlist[] = { "host", "user", "passwd", "db", "port",
 				  "unix_socket", "conv",
 				  "connect_timeout", "compress",
 				  "named_pipe", "init_command",
 				  "read_default_file", "read_default_group",
 				  "client_flag", "ssl",
-				  "local_infile",
+				  "local_infile", "secure_auth",
 #ifdef HAVE_MYSQL_OPT_TIMEOUTS
                                   "read_timeout",
                                   "write_timeout",
@@ -587,9 +588,9 @@ _mysql_ConnectionObject_Initialize(
 
 	if (!PyArg_ParseTupleAndKeywords(args, kwargs,
 #ifdef HAVE_MYSQL_OPT_TIMEOUTS
-                                         "|ssssisOiiisssiOiii:connect",
+                                         "|ssssisOiiisssiOiiii:connect",
 #else
-                                         "|ssssisOiiisssiOi:connect",
+                                         "|ssssisOiiisssiOii:connect",
 #endif
 					 kwlist,
 					 &host, &user, &passwd, &db,
@@ -599,7 +600,7 @@ _mysql_ConnectionObject_Initialize(
 					 &init_command, &read_default_file,
 					 &read_default_group,
 					 &client_flag, &ssl,
-                     &local_infile
+                     &local_infile, &secure_auth
 #ifdef HAVE_MYSQL_OPT_TIMEOUTS
                      , &read_timeout
                      , &write_timeout
@@ -666,6 +667,9 @@ _mysql_ConnectionObject_Initialize(
 
 	if (local_infile != -1)
 		mysql_options(&(self->connection), MYSQL_OPT_LOCAL_INFILE, (char *) &local_infile);
+
+	if (secure_auth != -1)
+		mysql_options(&(self->connection), MYSQL_SECURE_AUTH, &secure_auth);
 
 #if HAVE_OPENSSL
 	if (ssl)
